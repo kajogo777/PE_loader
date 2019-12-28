@@ -10,3 +10,4 @@ edition = "2018"
 serde = { version = "1.0.104", features = ["derive"] }
 bincode = "1.2.1"
 chrono = "0.4"
+bitflags = "1.2.1"

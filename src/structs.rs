@@ -57,7 +57,6 @@ pub struct DOSHeader {
     pub e_res2: [Word; 10],
     pub e_lfanew: DWord,
 }
-
 impl fmt::Display for DOSHeader {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -78,7 +77,6 @@ pub struct NTHeaders {
     pub file_header: FileHeader,
     pub optional_header: OptionalHeader,
 }
-
 impl fmt::Display for NTHeaders {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -105,7 +103,6 @@ pub struct FileHeader {
     pub size_of_optional_header: Word,
     pub characteristics: Word,
 }
-
 impl fmt::Display for FileHeader {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -158,7 +155,6 @@ pub struct OptionalHeader {
     number_of_rva_and_size: DWord,
     data_directory: [DataDirectory; 16],
 }
-
 impl fmt::Display for OptionalHeader {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -191,12 +187,18 @@ pub struct SectionHeader {
 impl fmt::Display for SectionHeader {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let bytes: Vec<u8> = self.name.iter().map(|byte| byte.0).collect();
+        let flags = SectionFlag::get_flags(self.characteristics.0);
+
         write!(
             f,
             "SECTION_HEADER
             \tname: {}
+            \tvirtual size: {}
+            \tcharacteristics: {}
             ",
             str::from_utf8(&bytes).unwrap(),
+            self.physical_address_or_virtual_size,
+            flags
         )
     }
 }
@@ -218,6 +220,37 @@ enum DataDirectoryEntry {
     DelayImport,
     COMDescriptor,
     Reserved,
+}
+
+bitflags! {
+    pub struct SectionFlag: u32 {
+        const MEM_EXECUTE = 0x20000000;
+        const MEM_READ = 0x40000000;
+        const MEM_WRITE = 0x80000000;
+    }
+}
+impl fmt::Display for SectionFlag {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?} ", self)
+    }
+}
+impl SectionFlag {
+    fn get_flags(value: u32) -> String {
+        let mut flags = String::new();
+
+        for flag in &[
+            SectionFlag::MEM_EXECUTE,
+            SectionFlag::MEM_READ,
+            SectionFlag::MEM_WRITE,
+        ] {
+            if flag.bits & value > 0 {
+                flags += &format!("{}| ", flag.to_string());
+            }
+        }
+        flags = flags.trim().to_string();
+        flags.pop();
+        flags
+    }
 }
 
 #[cfg(test)]
