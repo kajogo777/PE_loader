@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate bitflags;
-
 mod structs;
 
 use std::env;

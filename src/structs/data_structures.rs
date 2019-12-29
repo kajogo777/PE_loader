@@ -112,7 +112,8 @@ pub struct SectionHeader {
     pub characteristics: DWord,
 }
 
-pub enum DataDirectoryEntry {
+#[derive(Debug, PartialEq)]
+pub enum DataDirectoryIndex {
     Export = 0,
     Import,
     Resource,
@@ -131,25 +132,53 @@ pub enum DataDirectoryEntry {
     Reserved,
 }
 
-bitflags! {
-    pub struct SectionFlag: u32 {
-        const MEM_EXECUTE = 0x20000000;
-        const MEM_READ = 0x40000000;
-        const MEM_WRITE = 0x80000000;
-    }
+pub static DATA_DIRECTORY_NAME_LOOKUP: [DataDirectoryIndex; 16] = [
+    DataDirectoryIndex::Export,
+    DataDirectoryIndex::Import,
+    DataDirectoryIndex::Resource,
+    DataDirectoryIndex::Exception,
+    DataDirectoryIndex::Security,
+    DataDirectoryIndex::BaseReloc,
+    DataDirectoryIndex::Debug,
+    DataDirectoryIndex::ArchitectureReserved,
+    DataDirectoryIndex::GlobalPtr,
+    DataDirectoryIndex::TLS,
+    DataDirectoryIndex::LoadConfig,
+    DataDirectoryIndex::BoundImport,
+    DataDirectoryIndex::IAT,
+    DataDirectoryIndex::DelayImport,
+    DataDirectoryIndex::COMDescriptor,
+    DataDirectoryIndex::Reserved,
+];
+
+#[derive(Debug, PartialEq)]
+pub struct SectionFlag {
+    pub name: &'static str,
+    pub bitmask: u32,
 }
+
+pub static SECTION_FLAGS: [SectionFlag; 3] = [
+    SectionFlag {
+        name: "IMAGE_SCN_MEM_EXECUTE",
+        bitmask: 0x20000000,
+    },
+    SectionFlag {
+        name: "IMAGE_SCN_MEM_READ",
+        bitmask: 0x40000000,
+    },
+    SectionFlag {
+        name: "IMAGE_SCN_MEM_WRITE",
+        bitmask: 0x80000000,
+    },
+];
 
 impl SectionFlag {
     pub fn get_flags(value: u32) -> String {
         let mut flags = String::new();
 
-        for flag in &[
-            SectionFlag::MEM_EXECUTE,
-            SectionFlag::MEM_READ,
-            SectionFlag::MEM_WRITE,
-        ] {
-            if flag.bits & value > 0 {
-                flags += &format!("{}| ", flag.to_string());
+        for i in 0..SECTION_FLAGS.len() {
+            if value & SECTION_FLAGS[i].bitmask > 0 {
+                flags += &format!("{} | ", SECTION_FLAGS[i].name);
             }
         }
         flags = flags.trim().to_string();

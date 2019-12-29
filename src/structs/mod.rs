@@ -89,10 +89,19 @@ mod tests {
         assert_eq!(size_of::<NTHeaders>(), 248);
         assert_eq!(size_of::<FileHeader>(), 20);
         assert_eq!(size_of::<DataDirectory>(), 8);
-        assert_eq!(DataDirectoryEntry::Export as u8, 0u8);
-        assert_eq!(DataDirectoryEntry::COMDescriptor as u8, 14u8);
         assert_eq!(size_of::<OptionalHeader>(), 224);
         assert_eq!(size_of::<SectionHeader>(), 40);
+    }
+
+    #[test]
+    fn test_data_dir_indices() {
+        assert_eq!(DataDirectoryIndex::Export as u8, 0u8);
+        assert_eq!(DataDirectoryIndex::COMDescriptor as u8, 14u8);
+        assert_eq!(DATA_DIRECTORY_NAME_LOOKUP[0], DataDirectoryIndex::Export);
+        assert_eq!(
+            DATA_DIRECTORY_NAME_LOOKUP[14],
+            DataDirectoryIndex::COMDescriptor
+        );
     }
 
     #[test]

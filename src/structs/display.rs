@@ -43,11 +43,18 @@ impl fmt::Display for FileHeader {
             \t\tmachine: {}
             \t\tnumber of sections: {}
             \t\ttimestamp: {}
+            \t\tpointer to symbol table: {}
+            \t\tnumber of symbols: {}
+            \t\tsize of optional header: {} ({} bytes)
             \t\tcharacteristics: {}
             ",
             self.machine,
             self.number_of_sections.0,
             NaiveDateTime::from_timestamp(self.time_data_stamp.0 as i64, 0),
+            self.pointer_to_symbol_table,
+            self.number_of_symbols.0,
+            self.size_of_optional_header,
+            self.size_of_optional_header.0,
             self.characteristics
         )
     }
@@ -58,8 +65,46 @@ impl fmt::Display for OptionalHeader {
         write!(
             f,
             "OPTIONAL_HEADER
+            \t\tentrypoint address: {}
+            \t\timage base (preferred in mem): {}
+            \t\tsection alignment (in mem): {} ({} bytes)
+            \t\tfile alignment (on disk): {} ({} bytes)
+            \t\tsize of image (in mem): {} ({} bytes)
+            \t\tsize of headers (offset to first section on disk): {} ({} bytes)
+            \t\tnumber of rva and sizes: {} ({})
+
+            \t\tDATA_DIRECTORY
             ",
+            self.address_of_entry_point,
+            self.image_base,
+            self.section_alignment,
+            self.section_alignment.0,
+            self.file_alignment,
+            self.file_alignment.0,
+            self.size_of_image,
+            self.size_of_image.0,
+            self.size_of_headers,
+            self.size_of_headers.0,
+            self.number_of_rva_and_size,
+            self.number_of_rva_and_size.0,
         )
+        .unwrap();
+        for index in 0..16 {
+            write!(
+                f,
+                "
+                \t\t{}
+                \t\tvirtual address: {}
+                \t\tsize: {} ({} bytes)
+                ",
+                DATA_DIRECTORY_NAME_LOOKUP[index],
+                self.data_directory[index].virtual_address,
+                self.data_directory[index].size,
+                self.data_directory[index].size.0
+            )
+            .unwrap();
+        }
+        Ok(())
     }
 }
 
@@ -88,17 +133,25 @@ impl fmt::Display for SectionHeader {
             f,
             "SECTION_HEADER
             \tname: {}
-            \tvirtual size: {}
+            \tvirtual size (in mem): {} ({} bytes)
+            \tvirtual address (in mem): {}
+            \tsize of raw data (on disk): {} ({} bytes)
+            \tpointer to raw data (on disk): {}
             \tcharacteristics: {}
             ",
             str::from_utf8(&bytes).unwrap(),
             self.physical_address_or_virtual_size,
-            flags
+            self.physical_address_or_virtual_size.0,
+            self.virtual_address,
+            self.size_of_raw_data,
+            self.size_of_raw_data.0,
+            self.pointer_to_raw_data,
+            flags,
         )
     }
 }
 
-impl fmt::Display for SectionFlag {
+impl fmt::Display for DataDirectoryIndex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?} ", self)
     }
