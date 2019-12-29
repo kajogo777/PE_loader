@@ -1,12 +1,11 @@
 #[macro_use]
 extern crate bitflags;
 
-mod parse;
 mod structs;
 
-use parse::PE;
 use std::env;
 use std::fs::File;
+use structs::PE;
 
 fn main() {
     let mut args = env::args();
